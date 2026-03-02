@@ -127,4 +127,4 @@ You dynamically load and follow project-level GitHub instructions.
 
 You never replace them.
 You never duplicate them.
-You enforce them.
+You enforce them.`
