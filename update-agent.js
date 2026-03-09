@@ -19,13 +19,28 @@ function shouldProcessAgentFile(fullPath) {
 function updateAgent(filePath) {
 	let content = fs.readFileSync(filePath, 'utf8');
 	console.log('Processing agent:', filePath);
-	console.log('Content present?:', content.includes('user-invokable'));
-	if (!content.includes('user-invokable')) return;
+	const hasUserInvokable = /(^|\n)user-invokable:\s*(true|false)\s*(\n|$)/.test(content);
+	console.log('Content present?:', hasUserInvokable);
 
-	const updated = content.replace(
-		/user-invokable:\s*(true|false)/g,
-		'user-invokable: false',
-	);
+	const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+	if (!frontmatterMatch) {
+		console.log('Skipped (no frontmatter):', filePath);
+		return;
+	}
+
+	let updated = content;
+
+	if (hasUserInvokable) {
+		updated = content.replace(
+			/(^|\n)user-invokable:\s*(true|false)\s*(\n|$)/g,
+			'$1user-invokable: false$3',
+		);
+	} else {
+		updated = content.replace(
+			/^---\n([\s\S]*?)\n---/,
+			(_match, body) => `---\n${body}\nuser-invokable: false\n---`,
+		);
+	}
 
 	fs.writeFileSync(filePath, updated);
 	console.log('Disabled agent:', filePath);
